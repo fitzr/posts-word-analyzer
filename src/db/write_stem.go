@@ -43,7 +43,7 @@ func (c *stemWriterConn) createTableIfNotExists() {
     }
 }
 
-func (c *stemWriterConn) Write(word, stem string) {
+func (c *stemWriterConn) WriteStem(word, stem string) {
     _, err := c.Exec(sqlInsert, word, stem)
     if err != nil {
         log.Fatal("write stem failed : ", err)

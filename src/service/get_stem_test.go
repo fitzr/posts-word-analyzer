@@ -19,7 +19,7 @@ func TestGetStem(t *testing.T) {
     }
     server := httptest.NewServer(http.HandlerFunc(handler))
     defer server.Close()
-    stemUrl = server.URL
+    StemUrl = server.URL
     input := "test"
     expected := "result"
     expectedHeader := "language=english&stemmer=porter&text=test"
@@ -45,7 +45,7 @@ func TestGetStemError(t *testing.T) {
     }
     server := httptest.NewServer(http.HandlerFunc(handler))
     defer server.Close()
-    stemUrl = server.URL
+    StemUrl = server.URL
     input := "test"
 
     // exercise

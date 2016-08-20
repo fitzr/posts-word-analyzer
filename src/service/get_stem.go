@@ -18,8 +18,9 @@ import (
 // https://market.mashape.com/japerk/text-processing#stem
 
 var (
-    stemUrl = "https://japerk-text-processing.p.mashape.com/stem/"
-    mashapeKey string
+    StemUrl = "http://text-processing.com/api/stem/"
+//    StemUrl = "https://japerk-text-processing.p.mashape.com/stem/"
+    MashapeKey string
 )
 
 type stem struct {
@@ -41,14 +42,16 @@ func createRequest(word string) *http.Request {
     body.Add("stemmer", "porter")
     body.Add("text", word)
 
-    req, err := http.NewRequest("POST", stemUrl, strings.NewReader(body.Encode()))
+    req, err := http.NewRequest("POST", StemUrl, strings.NewReader(body.Encode()))
     if err != nil {
         log.Fatal("create request failed : ", err)
     }
 
     req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
     req.Header.Set("Accept", "application/json")
-    req.Header.Set("X-Mashape-Key", mashapeKey)
+    if MashapeKey != "" {
+        req.Header.Set("X-Mashape-Key", MashapeKey)
+    }
 
     return req
 }
