@@ -7,13 +7,13 @@ import (
 )
 
 const (
-    dataSourceName = "test_user@tcp(127.0.0.1:13306)/stack_test"
+    testDataSourceName = "test_user@tcp(127.0.0.1:13306)/stack_test"
 )
 
 func TestWriteStem(t *testing.T) {
-    defer tearDown()
+    defer writeStemTearDown()
 
-    sut := OpenStemWriter(dataSourceName)
+    sut := OpenStemWriter(testDataSourceName)
     word := "has"
     stem := "have"
 
@@ -21,7 +21,7 @@ func TestWriteStem(t *testing.T) {
 
 
     // query result
-    conn, err := sql.Open("mysql", dataSourceName)
+    conn, err := sql.Open("mysql", testDataSourceName)
     checkErr(err, "open connection failed (verify)")
     defer conn.Close()
 
@@ -44,9 +44,9 @@ func TestWriteStem(t *testing.T) {
     }
 }
 
-func tearDown() {
-    conn, err := sql.Open("mysql", dataSourceName)
-    checkErr(err, "open connection failed (tearDown)")
+func writeStemTearDown() {
+    conn, err := sql.Open("mysql", testDataSourceName)
+    checkErr(err, "open connection failed (writeStemTearDown)")
     defer conn.Close()
 
     _, err = conn.Exec("DROP TABLE word_stem")
