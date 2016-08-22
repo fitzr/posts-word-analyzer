@@ -23,20 +23,20 @@ const (
 )
 
 func OpenWordReaderFromWordCount(dataSourceName string) WordReader {
-    return open(dataSourceName, selectFromWordCount)
+    return openReader(dataSourceName, selectFromWordCount)
 }
 
 func OpenWordReaderFromWordCountStem(dataSourceName string, limit, offset int) WordReader {
-    return open(dataSourceName, selectFromWordCountStem, limit, offset)
+    return openReader(dataSourceName, selectFromWordCountStem, limit, offset)
 }
 
-func open(dataSourceName, query string, args ...interface{}) WordReader {
+func openReader(dataSourceName, querySql string, args ...interface{}) WordReader {
     db, err := sql.Open("mysql", dataSourceName)
     if err != nil {
         log.Fatal("open db failed : ", err)
     }
 
-    rows, err := db.Query(query, args...)
+    rows, err := db.Query(querySql, args...)
     if err != nil {
         db.Close()
         log.Fatal("query word failed : ", err)
