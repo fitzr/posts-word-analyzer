@@ -3,7 +3,7 @@ package task
 import (
     "../reader"
     "../writer"
-    "../service"
+    "github.com/kljensen/snowball"
     "log"
 )
 
@@ -14,11 +14,9 @@ type stemPair struct {
 
 var (
     channelSize = 100
-    parallelNum = 5
 
     wordChannel chan string
     stemChannel chan stemPair
-    semaphore chan bool
     finished chan bool
 )
 
@@ -29,7 +27,7 @@ func MapStem(r reader.Reader, w writer.Writer) {
     initialize()
 
     go read(r)
-    go get()
+    go stem()
     go write(w)
 
     <- finished
@@ -40,7 +38,6 @@ func MapStem(r reader.Reader, w writer.Writer) {
 func initialize() {
     wordChannel = make(chan string, channelSize)
     stemChannel = make(chan stemPair, channelSize)
-    semaphore = make(chan bool, parallelNum)
     finished = make(chan bool, 1)
 }
 
@@ -59,28 +56,15 @@ func read(r reader.Reader) {
     }
 }
 
-func get() {
-    progress, end := logger("get")
+func stem() {
+    progress, end := logger("stem")
     defer end()
-    defer close(semaphore)
+    defer close(stemChannel)
 
     for word := range wordChannel {
-        semaphore <- true
-        go stem(word)
+        stem, _ := snowball.Stem(word, "english", true)
+        stemChannel <- stemPair {word, stem}
         progress()
-    }
-
-    semaphore <- false
-    go stem("")
-}
-
-func stem(word string) {
-    if word != "" {
-        stem := service.GetStem(word)
-        stemChannel <- stemPair{word, stem}
-    }
-    if ! <- semaphore {
-        close(stemChannel)
     }
 }
 

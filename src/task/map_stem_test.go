@@ -1,11 +1,7 @@
 package task
 
 import (
-    "../service"
     "testing"
-    "fmt"
-    "net/http"
-    "net/http/httptest"
     "github.com/stretchr/testify/mock"
 )
 
@@ -26,17 +22,9 @@ func TestMapStem(t *testing.T) {
 
     // reader and writer mock
     mock := new(stemMock)
-    mock.On("ReadWord").Return("word").Times(5)
+    mock.On("ReadWord").Return("generously").Times(5)
     mock.On("ReadWord").Return("")
-    mock.On("WriteStem", "word", "stem").Times(5)
-
-    // http mock
-    handler := func (w http.ResponseWriter, r *http.Request) {
-        fmt.Fprintln(w, `{ "text" : "stem" }`)
-    }
-    server := httptest.NewServer(http.HandlerFunc(handler))
-    defer server.Close()
-    service.StemUrl = server.URL
+    mock.On("WriteStem", "generously", "generous").Times(5)
 
     // exercise
     MapStem(mock, mock)
