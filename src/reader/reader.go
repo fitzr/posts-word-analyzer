@@ -1,5 +1,5 @@
 package reader
 
 type Reader interface {
-    ReadWord() string
+    Read() string
 }

@@ -16,7 +16,7 @@ func main() {
     dataSource := os.Args[1]
 
     // reader
-    reader := db.OpenWordReader(dataSource)
+    reader := db.OpenWordReaderFromWordCount(dataSource)
     defer reader.Close()
 
     // writer

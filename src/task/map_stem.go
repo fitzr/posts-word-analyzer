@@ -47,7 +47,7 @@ func read(r reader.Reader) {
     defer close(wordChannel)
 
     for {
-        word := r.ReadWord()
+        word := r.Read()
         if word == "" {
             break
         }
@@ -74,7 +74,7 @@ func write(w writer.Writer) {
     defer func() { finished <- true }()
 
     for pair := range stemChannel {
-        w.WriteStem(pair.word, pair.stem)
+        w.Write(pair.word, pair.stem)
         progress()
     }
 }

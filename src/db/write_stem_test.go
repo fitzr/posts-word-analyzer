@@ -17,7 +17,7 @@ func TestWriteStem(t *testing.T) {
     word := "has"
     stem := "have"
 
-    sut.WriteStem(word, stem)
+    sut.Write(word, stem)
 
 
     // query result

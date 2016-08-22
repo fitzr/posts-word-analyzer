@@ -4,6 +4,7 @@ import (
     "database/sql"
     "log"
     "../reader"
+    _ "github.com/go-sql-driver/mysql"
 )
 
 type WordReader interface {
@@ -17,16 +18,25 @@ type wordReaderConn struct {
 }
 
 const (
-    querySql = "SELECT word FROM word_count WHERE count >= 1000"
+    selectFromWordCount = "SELECT word FROM word_count WHERE count >= 1000"
+    selectFromWordCountStem = "SELECT word FROM word_count_stem ORDER BY count DESC LIMIT ? OFFSET ?"
 )
 
-func OpenWordReader(dataSourceName string) WordReader {
+func OpenWordReaderFromWordCount(dataSourceName string) WordReader {
+    return open(dataSourceName, selectFromWordCount)
+}
+
+func OpenWordReaderFromWordCountStem(dataSourceName string, limit, offset int) WordReader {
+    return open(dataSourceName, selectFromWordCountStem, limit, offset)
+}
+
+func open(dataSourceName, query string, args ...interface{}) WordReader {
     db, err := sql.Open("mysql", dataSourceName)
     if err != nil {
         log.Fatal("open db failed : ", err)
     }
 
-    rows, err := db.Query(querySql)
+    rows, err := db.Query(query, args...)
     if err != nil {
         db.Close()
         log.Fatal("query word failed : ", err)
@@ -36,7 +46,7 @@ func OpenWordReader(dataSourceName string) WordReader {
     return conn
 }
 
-func (c *wordReaderConn) ReadWord() string {
+func (c *wordReaderConn) Read() string {
     if c.rows.Next() {
         var word string
         c.rows.Scan(&word)
