@@ -20,11 +20,67 @@ func TestGetAttr(t *testing.T) {
     server := httptest.NewServer(http.HandlerFunc(handler))
     defer server.Close()
     StemUrl = server.URL
+
+    input := "word"
     expectedFrequency := 4.47
-    expectedPart := "verb,noun"
 
     // exercise
-    actualFrequency, actualPart := GetAttr("")
+    actualFrequency, actualPart := GetAttr(input)
+
+    // verify
+    if expectedFrequency != actualFrequency {
+        t.Errorf("\nexpected: %v\nactual: %v", expectedFrequency, actualFrequency)
+    }
+    if "verb,noun" != actualPart && "noun,verb" != actualPart {
+        t.Errorf("\nexpected: %v\nactual: %v", "verb,noun", actualPart)
+    }
+}
+
+func TestGetAttrWithoutResults(t *testing.T) {
+    // set up
+    var header string
+    handler := func (w http.ResponseWriter, r *http.Request) {
+        fmt.Fprintln(w, testResultWithoutResults)
+
+        request, _ := ioutil.ReadAll(r.Body)
+        header = string(request)
+    }
+    server := httptest.NewServer(http.HandlerFunc(handler))
+    defer server.Close()
+    StemUrl = server.URL
+
+    input := "word"
+    expectedFrequency := 5.73
+    expectedPart := ""
+
+    // exercise
+    actualFrequency, actualPart := GetAttr(input)
+
+    // verify
+    if expectedFrequency != actualFrequency {
+        t.Errorf("\nexpected: %v\nactual: %v", expectedFrequency, actualFrequency)
+    }
+    if expectedPart != actualPart {
+        t.Errorf("\nexpected: %v\nactual: %v", expectedPart, actualPart)
+    }
+}
+
+func TestGetAttrNotNound(t *testing.T) {
+    // set up
+    handler := func (w http.ResponseWriter, r *http.Request) {
+        w.WriteHeader(http.StatusNotFound)
+        fmt.Fprintln(w, "Not Found")
+    }
+    server := httptest.NewServer(http.HandlerFunc(handler))
+    defer server.Close()
+    StemUrl = server.URL
+
+    input := "word"
+    expectedFrequency := 0.0
+    expectedPart := ""
+
+    // exercise
+    actualFrequency, actualPart := GetAttr(input)
 
     // verify
     if expectedFrequency != actualFrequency {
@@ -45,7 +101,8 @@ func TestGetAttrError(t *testing.T) {
     server := httptest.NewServer(http.HandlerFunc(handler))
     defer server.Close()
     StemUrl = server.URL
-    input := "test"
+
+    input := "word"
 
     // exercise
     GetAttr(input)
@@ -218,5 +275,13 @@ const (
     "all": "rɪ'kwɛst"
   },
   "frequency": 4.47
+}`
+    testResultWithoutResults = `{
+  "word": "isn't",
+  "rhymes": {
+    "all": "-izənt"
+  },
+  "pronunciation": "'ɪzʌnt",
+  "frequency": 5.73
 }`
 )

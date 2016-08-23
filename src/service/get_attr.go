@@ -17,7 +17,7 @@ import (
 // https://market.mashape.com/wordsapi/wordsapi#word
 
 var (
-    StemUrl = "https://wordsapiv1.p.mashape.com/words/"
+    StemUrl = "https://wordsapiv1.p.mashape.com/words"
     MashapeKey string
 )
 
@@ -40,7 +40,7 @@ func GetAttr(word string) (float64, string) {
 }
 
 func createRequest(word string) *http.Request {
-    url := StemUrl + word
+    url := StemUrl + "/" + word
 
     req, err := http.NewRequest("GET", url, nil)
     if err != nil {
@@ -65,14 +65,20 @@ func doRequest(req *http.Request) []byte {
 
     body, err := ioutil.ReadAll(res.Body)
 
+    if res.StatusCode == http.StatusOK {
+        return body
+    }
+    if res.StatusCode == http.StatusNotFound {
+        log.Println(req.URL, "is not found.")
+        return []byte(`{"frequency":0.0}`)
+    }
     if res.StatusCode != http.StatusOK {
         log.Fatal("http request failed : ", res.StatusCode, " ", string(body))
     }
     if err != nil {
         log.Fatal("http read response failed : ", err)
     }
-
-    return body
+    return nil
 }
 
 func parseResponse(res []byte) (float64, string) {
