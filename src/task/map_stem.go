@@ -12,69 +12,75 @@ type stemPair struct {
     stem string
 }
 
-var (
-    channelSize = 100
+var stemChannelSize = 100
 
+type mapStemTask struct {
     wordChannel chan string
     stemChannel chan stemPair
     finished chan bool
-)
+}
 
 func MapStem(r reader.Reader, w writer.Writer) {
 
     log.Println("start")
 
-    initialize()
+    t := newMapStemTask()
 
-    go read(r)
-    go stem()
-    go write(w)
+    go t.read(r)
+    go t.stem()
+    go t.write(w)
 
-    <- finished
+    t.waitToFinish()
 
     log.Println("finished")
 }
 
-func initialize() {
-    wordChannel = make(chan string, channelSize)
-    stemChannel = make(chan stemPair, channelSize)
-    finished = make(chan bool, 1)
+func newMapStemTask() mapStemTask {
+    return mapStemTask {
+        wordChannel: make(chan string, stemChannelSize),
+        stemChannel: make(chan stemPair, stemChannelSize),
+        finished: make(chan bool, 1),
+    }
 }
 
-func read(r reader.Reader) {
+func (t *mapStemTask) read(r reader.Reader) {
     progress, end := logger("read")
     defer end()
-    defer close(wordChannel)
+    defer close(t.wordChannel)
 
     for {
         word := r.Read()
         if word == "" {
             break
         }
-        wordChannel <- word
+        t.wordChannel <- word
         progress()
     }
 }
 
-func stem() {
+func (t *mapStemTask) stem() {
     progress, end := logger("stem")
     defer end()
-    defer close(stemChannel)
+    defer close(t.stemChannel)
 
-    for word := range wordChannel {
+    for word := range t.wordChannel {
         stem, _ := snowball.Stem(word, "english", true)
-        stemChannel <- stemPair {word, stem}
+        t.stemChannel <- stemPair {word, stem}
         progress()
     }
 }
 
-func write(w writer.Writer) {
+func (t *mapStemTask) write(w writer.Writer) {
     progress, end := logger("write")
     defer end()
-    defer func() { finished <- true }()
+    defer func() { t.finished <- true }()
 
-    for pair := range stemChannel {
+    for pair := range t.stemChannel {
         w.Write(pair.word, pair.stem)
         progress()
     }
+}
+
+func (t *mapStemTask) waitToFinish() {
+    <- t.finished
 }
