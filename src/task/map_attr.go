@@ -31,9 +31,9 @@ func MapAttr(r reader.Reader, w writer.Writer) {
 
     t := newMapAttrTask()
 
-    t.read(r)
-    t.getAttr()
-    t.write(w)
+    go t.read(r)
+    go t.getAttr()
+    go t.write(w)
 
     t.waitToFinish()
 
